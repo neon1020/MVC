@@ -12,6 +12,9 @@ import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
 import vo.ActionForward;
 import vo.BoardBean;
 
+// FrontController 클래스로부터 지시를 받아 비즈니스 로직 준비 작업을 수행하고
+// 실제 비즈니스 로직을 서비스 클래스로 요청한 후 요청 처리 결과를 리턴받아
+// 포워딩 준비 작업을 수행하는 클래스
 public class BoardWriteProAction implements Action {
 
 	@Override
