@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.oreilly.servlet.MultipartRequest;
 import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
 
+import svc.BoardWriteProService;
 import vo.ActionForward;
 import vo.BoardBean;
 
@@ -59,7 +60,6 @@ public class BoardWriteProAction implements Action {
 		board.setBoard_pass(multi.getParameter("board_pass"));
 		board.setBoard_subject(multi.getParameter("board_subject"));
 		board.setBoard_content(multi.getParameter("board_content"));
-		board.setBoard_file(multi.getParameter("board_file"));
 		
 		// 단, 파일명을 가져올 때는 단순히 getParameter() 메소드로 처리 불가
 		// 1) 파일명을 관리하는 객체에 접근하여 파일명 목록 중 첫번째 파일명 가져오기
@@ -74,8 +74,8 @@ public class BoardWriteProAction implements Action {
 		
 		// BoardWriteProService 인스턴스 생성 후 registBoard() 메소드를 호출하여 글쓰기 작업 요청
 		// => 파라미터 : BoardBean 객체    리턴타입 : boolean(isWriteSuccess)
-		// 글쓰기 비즈니스 로직 요청에 대한 처리 완료됐다고 가정
-		boolean isWriteSuccess = false;
+		BoardWriteProService service = new BoardWriteProService();
+		boolean isWriteSuccess = service.registBoard(board);
 		
 		if(!isWriteSuccess) { // 글쓰기 작업 실패 시
 			

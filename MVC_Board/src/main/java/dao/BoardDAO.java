@@ -173,35 +173,33 @@ public class BoardDAO {
 			
 			rs = pstmt.executeQuery();
 			
-			if(rs.next()) {
 				
-				// 읽어올 게시물 존재할 경우
-				// BoardBean 객체 생성하여 1개 레코드(게시물)를 저장 후
-				// BoardBean 객체를 List<BoardBean> 객체에 반복하여 추가
-				// => 단, 반복분 위에서 먼저 List<BoardBean> 객체 생성이 선행되어야 함
+			// 읽어올 게시물 존재할 경우
+			// BoardBean 객체 생성하여 1개 레코드(게시물)를 저장 후
+			// BoardBean 객체를 List<BoardBean> 객체에 반복하여 추가
+			// => 단, 반복분 위에서 먼저 List<BoardBean> 객체 생성이 선행되어야 함
+			
+			boardList = new ArrayList<BoardBean>();
+			
+			while(rs.next()) {
 				
-				boardList = new ArrayList<BoardBean>();
+				// BoardBean 객체에 읽어온 게시물 1개씩 저장
+				BoardBean boardBean = new BoardBean();
 				
-				while(rs.next()) {
-					
-					// BoardBean 객체에 읽어온 게시물 1개씩 저장
-					BoardBean boardBean = new BoardBean();
-					
-					boardBean.setBoard_num(rs.getInt("board_num"));
-					boardBean.setBoard_name(rs.getString("board_name"));
-					boardBean.setBoard_pass(rs.getString("board_pass"));
-					boardBean.setBoard_subject(rs.getString("board_subject"));
-					boardBean.setBoard_content(rs.getString("board_content"));
-					boardBean.setBoard_file(rs.getString("board_file"));
-					boardBean.setBoard_real_file(rs.getString("board_real_file"));
-					boardBean.setBoard_re_ref(rs.getInt("board_re_ref"));
-					boardBean.setBoard_re_lev(rs.getInt("board_re_lev"));
-					boardBean.setBoard_re_seq(rs.getInt("board_re_seq"));
-					boardBean.setBoard_date(rs.getDate("board_date"));
-					
-					// 1개 게시물 정보가 저장된 BoardBean 객체를 ArrayList 객체에 추가
-					boardList.add(boardBean);
-				}
+				boardBean.setBoard_num(rs.getInt("board_num"));
+				boardBean.setBoard_name(rs.getString("board_name"));
+				boardBean.setBoard_pass(rs.getString("board_pass"));
+				boardBean.setBoard_subject(rs.getString("board_subject"));
+				boardBean.setBoard_content(rs.getString("board_content"));
+				boardBean.setBoard_file(rs.getString("board_file"));
+				boardBean.setBoard_real_file(rs.getString("board_real_file"));
+				boardBean.setBoard_re_ref(rs.getInt("board_re_ref"));
+				boardBean.setBoard_re_lev(rs.getInt("board_re_lev"));
+				boardBean.setBoard_re_seq(rs.getInt("board_re_seq"));
+				boardBean.setBoard_date(rs.getDate("board_date"));
+				
+				// 1개 게시물 정보가 저장된 BoardBean 객체를 ArrayList 객체에 추가
+				boardList.add(boardBean);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -209,6 +207,103 @@ public class BoardDAO {
 		}
 		
 		return boardList;
+	}
+	
+	// ----------------------------------------------------------------------------------------------
+	
+	// 게시물 조회수 증가 작업 수행하는 updateReadcount() 메소드
+	// => 파라미터 : 글번호    리턴타입 : void
+	public void updateReadcount(int board_num) {
+		
+		PreparedStatement pstmt = null;
+		
+		try {
+			String sql = "UPDATE board SET board_readcount=board_readcount+1 WHERE board_num=?";
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, board_num);
+			
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("SQL 구문 오류 발생! - updateReadcount()");
+		} finally {
+			JdbcUtil.close(pstmt);
+		}
+	}
+	
+	// ----------------------------------------------------------------------------------------------
+	
+	// 게시물 상세 정보 조회 수행하는 selectBoard() 메소드
+	// => 파라미터 : 글번호    리턴타입 : BoardBean(board)
+	public BoardBean selectBoard(int board_num) {
+		BoardBean board = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
+		try {
+			String sql = "SELECT * FROM board WHERE board_num=?";
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, board_num);
+			
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()) {
+				
+				board = new BoardBean();
+				
+				board.setBoard_num(rs.getInt("board_num"));
+				board.setBoard_name(rs.getString("board_name"));
+				// board.setBoard_pass(rs.getString("board_pass")); => 패스워드 불필요
+				board.setBoard_subject(rs.getString("board_subject"));
+				board.setBoard_content(rs.getString("board_content"));
+				board.setBoard_file(rs.getString("board_file"));
+				board.setBoard_real_file(rs.getString("board_real_file"));
+				board.setBoard_re_ref(rs.getInt("board_re_ref"));
+				board.setBoard_re_lev(rs.getInt("board_re_lev"));
+				board.setBoard_re_seq(rs.getInt("board_re_seq"));
+				board.setBoard_readcount(rs.getInt("board_readcount"));
+				board.setBoard_date(rs.getDate("board_date"));
+			}
+		} catch (SQLException e) {
+			System.out.println("SQL 구문 오류 발생! - selectBoard()");
+			e.printStackTrace();
+		} finally {
+			JdbcUtil.close(rs);
+			JdbcUtil.close(pstmt);
+		}
+		
+		return board;
+	}
+
+	// ----------------------------------------------------------------------------------------------
+	
+	public boolean isBoardWriter(int board_num, String board_pass) {
+		
+		boolean isBoardWriter = false;
+		
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
+		try {
+			String sql = "SELECT * FROM board WHERE board_num=? AND board_pass=?";
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, board_num);
+			pstmt.setString(2, board_pass);
+			
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()) {
+				isBoardWriter = true;
+			}
+		} catch (SQLException e) {
+			System.out.println("SQL 구문 오류 발생! - isBoardWriter()");
+			e.printStackTrace();
+		} finally {
+			JdbcUtil.close(rs);
+			JdbcUtil.close(pstmt);
+		}
+		
+		return isBoardWriter;
 	}
 	
 }
