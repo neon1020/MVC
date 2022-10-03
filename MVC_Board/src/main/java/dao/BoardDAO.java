@@ -277,6 +277,8 @@ public class BoardDAO {
 
 	// ----------------------------------------------------------------------------------------------
 	
+	// 글번호에 해당하는 레코드의 패스워드 일치 여부 확인 하는 isBoardWriter() 메소드
+	// => 파라미터 : 글번호, 패스워드   리턴타입 : boolean(isBoardWriter)
 	public boolean isBoardWriter(int board_num, String board_pass) {
 		
 		boolean isBoardWriter = false;
@@ -285,6 +287,7 @@ public class BoardDAO {
 		ResultSet rs = null;
 		
 		try {
+			// 글번호와 패스워드가 일치하는 레코드 검색
 			String sql = "SELECT * FROM board WHERE board_num=? AND board_pass=?";
 			pstmt = con.prepareStatement(sql);
 			pstmt.setInt(1, board_num);
@@ -305,5 +308,151 @@ public class BoardDAO {
 		
 		return isBoardWriter;
 	}
+	
+	// ----------------------------------------------------------------------------------------------
+	
+		// 게시물 삭제 작업 수행하는 deleteBoard() 메소드
+		// => 파라미터 : 글번호    리턴타입 : int(deleteCount)
+		public int deleteBoard(int board_num) {
+			int deleteCount = 0;
+			
+			PreparedStatement pstmt = null;
+			
+			try {
+				// 글번호에 해당하는 레코드 삭제(패스워드는 이미 판별 완료되었으므로 제외)
+				String sql = "DELETE FROM board WHERE board_num=?";
+				pstmt = con.prepareStatement(sql);
+				pstmt.setInt(1, board_num);
+				
+				deleteCount = pstmt.executeUpdate();
+			} catch (SQLException e) {
+				System.out.println("SQL 구문 오류 발생! - deleteBoard()");
+				e.printStackTrace();
+			} finally {
+				JdbcUtil.close(pstmt);
+			}
+			
+			return deleteCount;
+		}
+
+		// ----------------------------------------------------------------------------------------------
+		
+		// 글 수정 작업 수행하는 updateBoard() 메소드
+		// => 파라미터 : BoardBean(board)  리턴타입 : int (updateCount)
+		public int updateBoard(BoardBean board) {
+			
+			int updateCount = 0;
+			
+			PreparedStatement pstmt = null;
+			
+			try {
+				// 글번호가 일치하는 레코드의 작성자, 제목, 내용, 원본파일, 실제파일명 변경
+				// => 단, 수정할 파일이 null 일 경우 파일 관련 컬럼은 수정 대상에서 제외
+				if(board.getBoard_file() == null) { // 수정할 파일 없을 경우
+					String sql = "UPDATE board SET board_name=?, board_subject=?, board_content=? WHERE board_num=?";
+					pstmt = con.prepareStatement(sql);
+					pstmt.setString(1, board.getBoard_name());
+					pstmt.setString(2, board.getBoard_subject());
+					pstmt.setString(3, board.getBoard_content());
+					pstmt.setInt(4, board.getBoard_num());
+					
+				} else { // 수정할 파일 있을 경우
+				
+					String sql = "UPDATE board SET board_name=?, board_subject=?, board_content=?, board_file=?, board_real_file=? WHERE board_num=?";
+					pstmt = con.prepareStatement(sql);
+					pstmt.setString(1, board.getBoard_name());
+					pstmt.setString(2, board.getBoard_subject());
+					pstmt.setString(3, board.getBoard_content());
+					pstmt.setString(4, board.getBoard_file());
+					pstmt.setString(5, board.getBoard_real_file());
+					pstmt.setInt(6, board.getBoard_num());
+				}
+				
+				// 수정할 파일의 존재 여부와 상관없이 UPDATE 구문은 공통으로 실행
+				updateCount = pstmt.executeUpdate();
+			} catch (SQLException e) {
+				System.out.println("SQL 구문 오류 발생 - updateBoard()");
+				e.printStackTrace();
+			} finally {
+				JdbcUtil.close(pstmt);
+			}
+			
+			return updateCount;
+		}
+
+		// ----------------------------------------------------------------------------------------------
+		
+		// 답글 등록 수행하는 insertReplyBoard() 메소드
+		// => 파라미터 : BoardBean(board)  리턴타입 : int(insertCount)
+		public int insertReplyBoard(BoardBean board) {
+			int insertCount = 0;
+			
+			PreparedStatement pstmt = null, pstmt2 = null;
+			ResultSet rs = null;
+			
+			// board 테이블의 게시물 최대 번호 조회하여 새 글 번호 결정
+			// 새 글 번호 저장할 변수 선언 (기본값 = 1)
+			int num;
+			try {
+				num = 1;
+				
+				String sql = "SELECT MAX(board_num) FROM board";
+				// 밖에서 전달받아 저장된 Connection 객체 사용
+				pstmt = con.prepareStatement(sql);
+				
+				rs = pstmt.executeQuery();
+				
+				if(rs.next()) {
+					num = rs.getInt(1) + 1;
+				}
+				
+				// -------------------------------------------------------------
+				
+				int re_ref = board.getBoard_re_ref(); // 원본글의 참조글 번호
+				int re_lev = board.getBoard_re_lev(); // 원본글의 들여쓰기 레벨
+				int re_seq = board.getBoard_re_seq(); // 원본글의 순서 번호
+				
+				// 기존 답글들에 대한 순서번호 증가(UPDATE 구문 사용)
+				// => 원본글의 참조글번호(board_re_ref)와 같은 레코드들 중에서
+				//    원본글의 순서번호 보다 큰 게시물들의 순서번호를 + 1 씩 처리
+				sql = "UPDATE board SET board_re_seq=board_re_seq+1 WHERE board_re_ref=? AND board_re_seq>?";
+				pstmt2 = con.prepareStatement(sql);
+				pstmt2.setInt(1, re_ref);
+				pstmt2.setInt(2, re_seq);
+				pstmt2.executeUpdate();
+				pstmt2.close(); // JdbcUtil.close(pstmt2); 랑 똑같음
+				
+				// 새 답글의 들여쓰기 레벨과 순서번호를 원본글의 번호 + 1 처리
+				re_lev++;
+				re_seq++;
+				
+				// 답글 INSERT 작업 수행
+				sql = "INSERT INTO board VALUES(?,?,?,?,?,?,?,?,?,?,?,now())";
+				pstmt2 = con.prepareStatement(sql);
+				pstmt2.setInt(1, num);
+				pstmt2.setString(2, board.getBoard_name());
+				pstmt2.setString(3, board.getBoard_pass());
+				pstmt2.setString(4, board.getBoard_subject());
+				pstmt2.setString(5, board.getBoard_content());
+				pstmt2.setString(6, board.getBoard_file());
+				pstmt2.setString(7, board.getBoard_real_file());
+				pstmt2.setInt(8, re_ref); // 참조글번호(board_re_ref) = 원본글의 참조글번호
+				pstmt2.setInt(9, re_lev); // 들여쓰기레벨(board_re_lev) = 계산된 레벨
+				pstmt2.setInt(10, re_seq); // 순서번호(board_re_seq) = 계산된 순서번호
+				pstmt2.setInt(11, 0);
+				
+				insertCount = pstmt2.executeUpdate();
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+				System.out.println("SQL 구문 오류 발생! - insertReplyBoard()");
+			} finally {
+				JdbcUtil.close(rs);
+				JdbcUtil.close(pstmt);
+				JdbcUtil.close(pstmt2);
+			}
+			
+			return insertCount;
+		}
 	
 }

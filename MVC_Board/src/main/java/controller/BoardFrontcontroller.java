@@ -14,6 +14,10 @@ import action.BoardDeleteProAction;
 import action.BoardDetailAction;
 import action.BoardListAction;
 import action.BoardListAction_backup;
+import action.BoardModifyFormAction;
+import action.BoardModifyProAction;
+import action.BoardReplyFormAction;
+import action.BoardReplyProAction;
 import action.BoardWriteProAction;
 import action.BoardWriteProAction_backup;
 import vo.ActionForward;
@@ -108,7 +112,46 @@ public class BoardFrontcontroller extends HttpServlet {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
+		} else if(command.equals("/BoardModifyForm.bo")) {
+			// 글 수정 폼 작업 요청 => BoardModifyFormAction 클래스
+			action = new BoardModifyFormAction();
+			
+			try {
+				forward = action.execute(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		} else if(command.equals("/BoardModifyPro.bo")) {
+			// 글 수정 비즈니스 작업 요청 => BoardModifyProAction 클래스
+			action = new BoardModifyProAction();
+			
+			try {
+				forward = action.execute(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		} else if(command.equals("/BoardReplyForm.bo")) {
+			// 답글 작성 폼 작업 요청 => BoardReplyFormAction 클래스
+			action = new BoardReplyFormAction();
+			
+			try {
+				forward = action.execute(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		} else if(command.equals("/BoardReplyPro.bo")) {
+			// 답글 작성 비즈니스 작업 요청 => BoardReplyProAction 클래스
+			action = new BoardReplyProAction();
+			
+			try {
+				forward = action.execute(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} 
 		
 		// ----------------------------------------------------------------------------------------------------------------------
 		

@@ -11,6 +11,7 @@
 <head>
 <meta charset="UTF-8">
 <title>MVC 게시판</title>
+<link href="<%=request.getContextPath() %>/css/top.css" rel="stylesheet" type="text/css">
 <style type="text/css">
 	#listForm {
 		width: 1024px;
@@ -71,6 +72,11 @@
 </style>
 </head>
 <body>
+	<header>
+		<!-- Login, Join 링크 표시 영역(inc/top.jsp 페이지 삽입) -->
+		<jsp:include page="/inc/top.jsp"></jsp:include>
+	</header>
+
 	<!-- 게시판 리스트 -->
 	<section id="listForm">
 		<h2>게시판 글 목록</h2>
@@ -86,13 +92,27 @@
 			
 			<!-- JSTL 과 EL 활용하여 글목록 표시 -->
 			<c:forEach var="board" items="${boardList }">
-			<tr>
-				<td>${board.board_num }</td>
-				<td class="td_left"><a href="BoardDetail.bo?board_num=${board.board_num}&pageNum=${pageInfo.pageNum }">${board.board_subject }</a></td>
-				<td>${board.board_name }</td>
-				<td>${board.board_date }</td>
-				<td>${board.board_readcount }</td>
-			</tr>
+				<tr>
+					<td>${board.board_num }</td>
+					<td class="td_left">
+						<%-- =============== 답글 관련 목록 처리 추가 ================== --%>
+						<%-- board_re_lev 값이 0보다 크면 반복문을 통해 해당 값만큼 공백(&nbsp;) 추가 --%>
+						<c:if test="${board.board_re_lev > 0 }">
+							<%-- c:forEach 문을 통해 1부터 board_re_lev 값까지 1씩 증가하면서 공백 추가 --%>
+							<c:forEach var="i" begin="1" end="${board.board_re_lev }">
+								&nbsp;
+							</c:forEach>
+							<%-- 답글 제목 앞에 이미지 추가 --%>
+							<img src="images/re.gif">
+						</c:if>
+						<%-- ============================================================ --%>
+						<a href="BoardDetail.bo?board_num=${board.board_num }&pageNum=${pageInfo.pageNum}" title="${board.board_subject }">
+							${board.board_subject }</a>
+					</td>
+					<td title="${board.board_name }">${board.board_name }</td>
+					<td>${board.board_date }</td>
+					<td>${board.board_readcount }</td>
+				</tr>
 			</c:forEach>
 		</table>
 	</section>

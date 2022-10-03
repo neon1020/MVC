@@ -25,7 +25,7 @@ public class BoardDetailAction implements Action {
 		// System.out.println(board_num + ", " + pageNum);
 		
 		BoardDetailService service = new BoardDetailService();
-		BoardBean board = service.getBoard(board_num);
+		BoardBean board = service.getBoard(board_num, "detail");
 		System.out.println(board);
 		
 		// request 객체에 뷰페이지로 전달할 데이터(객체) 저장

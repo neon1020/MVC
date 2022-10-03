@@ -5,6 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <title>MVC 게시판</title>
+<link href="<%=request.getContextPath() %>/css/top.css" rel="stylesheet" type="text/css">
 <style>
 	#passForm {
 		width: 300px;
@@ -26,6 +27,11 @@
 </style>
 </head>
 <body>
+	<header>
+		<!-- Login, Join 링크 표시 영역(inc/top.jsp 페이지 삽입) -->
+		<jsp:include page="/inc/top.jsp"></jsp:include>
+	</header>
+	
 	<!-- 게시판 글 삭제 -->
 	<h2>게시판 글 삭제</h2>
 	<section id="passForm">
