@@ -1,5 +1,7 @@
 package vo;
 
+import java.sql.Date;
+
 public class MemberBean {
 	private int idx;
 	private String name;
@@ -7,7 +9,8 @@ public class MemberBean {
 	private String passwd;
 	private String email;
 	private String gender;
-	private String date;
+	private Date date;
+	private String auth_status;
 	
 	public int getIdx() {
 		return idx;
@@ -45,17 +48,24 @@ public class MemberBean {
 	public void setGender(String gender) {
 		this.gender = gender;
 	}
-	public String getDate() {
+	public Date getDate() {
 		return date;
 	}
-	public void setDate(String date) {
+	public void setDate(Date date) {
 		this.date = date;
+	}
+	
+	public String getAuth_status() {
+		return auth_status;
+	}
+	public void setAuth_status(String auth_status) {
+		this.auth_status = auth_status;
 	}
 	
 	// toString 오버라이딩
 	@Override
 	public String toString() {
 		return "MemberBean [idx=" + idx + ", name=" + name + ", id=" + id + ", passwd=" + passwd + ", email=" + email
-				+ ", gender=" + gender + ", date=" + date + "]";
+				+ ", gender=" + gender + ", date=" + date + ", auth_status=" + auth_status + "]";
 	}
 }

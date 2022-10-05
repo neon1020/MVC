@@ -9,7 +9,7 @@
 			<a href="MemberLoginForm.me">Login</a> | <a href="MemberJoinForm.me">Join</a>
 		</c:when>
 		<c:otherwise>
-			${sessionScope.sId } 님 | <a href="MemberLogout.me">Logout</a>
+			<a href="MemberInfo.me">${sessionScope.sId }</a> 님 | <a href="MemberLogout.me">Logout</a>
 		</c:otherwise>
 	</c:choose>
 </div>

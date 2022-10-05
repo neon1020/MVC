@@ -44,6 +44,7 @@ public class MemberJoinProAction implements Action {
 		// 실패 시 자바스크립트를 통해 "회원 가입 실패!" 출력 후 이전페이지 돌아가기
 		// 아니면 ActionForward 객체 사용하여 "MemberJoinResult.me" 주소 요청(Redirect 방식)
 		// => member_join_result.jsp 페이지로 연결
+		
 		if(!isRegistSuccess) {
 			response.setContentType("text/html; charset=UTF-8");
 			PrintWriter out = response.getWriter();
@@ -51,10 +52,14 @@ public class MemberJoinProAction implements Action {
 			out.println("alert('회원가입 실패')");
 			out.println("history.back()");
 			out.println("</script>");
+			
 		} else {
+			
+			// 회원 인증 메일 발송을 위한 MemberSendAuthMail.me 페이지로 포워딩
+			// => 파라미터 : 가입자의 아이디, 이메일 주소 함께 전송
 			forward = new ActionForward();
-			forward.setPath("member/member_join_result.jsp");
-			forward.setRedirect(false);
+			forward.setPath("MemberSendAuthMail.me?id=" + id + "&email=" + email);
+			forward.setRedirect(true);
 		}
 		return forward;
 	}
